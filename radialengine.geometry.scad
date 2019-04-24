@@ -16,14 +16,23 @@ function calculateRadialEngineGeometry(count, center, stroke, crankShaftAngle, m
         i == 0 ?
         mainRodEnd :
         CircleLineIntersections(rodStarts[i], subRodLength, center, cylinderAxisVectors[i])[0]])
-    [ [ "radialEngineGeometry", "v0.1" ], ["metaData"], [
+    let (rodAngles = [ for (i = [0 : count - 1]) angle(rodStarts[i], rodEnds[i]) ])
+    [ [ "radialEngineGeometry", "v0.1" ], ["metaData", ["cylinders", count]], [
         for (i = [0 : count - 1]) [
             ["index", i],
             ["axis", [ [ "angle", cylinderAxisAngles[i]], ["vector", cylinderAxisVectors[i] ]]],
-            ["rod", [ "start", rodStarts[i]], ["end", rodEnds[i]] ]
+            ["rod", [ "start", rodStarts[i]], ["end", rodEnds[i]], ["angle", rodAngles[i]] ]
         ]
         ]
     ];
+
+function getAxisAngles(geometry) = isGeometry(geometry) ? [ for (k = geometry[2]) k[1][1][0][1] ] : undef;
+function getAxisVectors(geometry) = isGeometry(geometry) ? [ for (k = geometry[2]) k[1][1][1][1] ] : undef;
+function getRodStarts(geometry) = isGeometry(geometry) ? [ for (k = geometry[2]) k[2][1][1] ] : undef;
+function getRodEnds(geometry) = isGeometry(geometry) ?  [ for (k = geometry[2]) k[2][2][1] ] : undef;
+function getRodAngles(geometry) = isGeometry(geometry) ?  [ for (k = geometry[2]) k[2][3][1] ] : undef;
+
+function isGeometry(geometry) = geometry[0][0] == "radialEngineGeometry";
 
 function rotVec(P, alpha) =
     P * [ [cos(alpha), sin(alpha)], [-sin(alpha), cos(alpha)] ];
