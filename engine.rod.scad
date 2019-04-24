@@ -14,10 +14,10 @@ module rod(length, baseWidth, topWidth, depth, topDepth=undef, baseDepth=undef, 
     }
 
     // upper bearing
-    translate([length, 0, 0]) cylinder(h=topBearingDepth, d=topBearingDiameter, center=true, $fn=32);
+    translate([length, 0, 0]) cylinder(h=topBearingDepth, d=topBearingDiameter, center=true);
 
     // lower bearing
-    cylinder(h=baseBearingDepth, d=baseBearingDiameter, center=true, $fn=32);
+    cylinder(h=baseBearingDepth, d=baseBearingDiameter, center=true);
 
     module cutout() hull() {
         cutDiameterBase = baseWidth-2*wall;
