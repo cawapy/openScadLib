@@ -1,5 +1,6 @@
 use <engine.piston.scad>
 use <engine.rod.scad>
+use <engine.valve.scad>
 use <radialengine.geometry.scad>
 
 $fn=32;
@@ -23,7 +24,7 @@ PleuelAuge=4;
 ZylinderWand=2;
 KurbelLaenge = Hub/2;
 KurbelZentrum = [0,0];
-KurbelWinkel = $t * 360;
+KurbelWinkel = $t * 360 * 2;
 HauptPleuelScheibenRadius=PleuelVerkuerzung+2;
 PleuelLaenge=PleuelLaenge0-PleuelVerkuerzung;
 
@@ -53,6 +54,12 @@ pleuelSpitzeDurchmesser=PleuelAuge+2;
 kurbelDicke=5;
 kurbelRadius=Hub/2;
 
+VentilHuebe = [ for (i = [0 : 1 : Zylinder-1])
+    let(even=i%2==0)
+    let(w=(360 + KurbelWinkel - i*360/Zylinder + (even ? 360 : 0))%(2*360))
+    let(intake=(w<180))
+    let(exhaust=(w>((360+180))))
+    [intake?sin(w):0,exhaust?-sin(w):0]];
 
 for (i = [0 : 1 : Zylinder-1])
     translate(PleuelStarts[i])
@@ -70,13 +77,23 @@ for (i = [0 : 1 : Zylinder-1])
                 Kolben();
 
 // zylinder
-color(.3*[1,1,1]) for (i = [0 : 1 : Zylinder-1]) {
-    translate(KurbelZentrum+(PleuelLaenge0-KurbelLaenge-KolbenUnterLaenge)*BahnVektoren[i]) rotate([-90,0,BahnWinkel[i]])
-        difference() {
-            cylinder(d=Bohrung+2*ZylinderWand, h=KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge+ZylinderWand);
+for (i = [0 : 1 : Zylinder-1]) {
+    translate(KurbelZentrum+(PleuelLaenge0-KurbelLaenge-KolbenUnterLaenge)*BahnVektoren[i]) rotate([-90,0,BahnWinkel[i]]) {
+        color(.3*[1,1,1]) difference() {
+            cylinder(d=Bohrung+2*ZylinderWand, h=KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge+4*ZylinderWand);
             translate([0,0,-.001]) cylinder(d=Bohrung+.001, h=KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge);
             translate([-Bohrung/2-2*ZylinderWand,-Bohrung/2-2*ZylinderWand,-.001]) cube([Bohrung+4*ZylinderWand, Bohrung/2+2*ZylinderWand, 3*Hub]);
+            Ventil(sign=1, cut=true, enlarge=1.01);
+            Ventil(sign=-1, cut=true, enlarge=1.01);
         }
+        color([.6,.8,1]) Ventil(sign=1, cut=false, hubRel=VentilHuebe[i][0]);
+        color([1,.8,.6]) Ventil(sign=-1, cut=false, hubRel=VentilHuebe[i][1]);
+    }
+}
+module Ventil(sign, cut, enlarge=1, hubRel=0) {
+    hubMax=2;
+    translate([sign*Bohrung/4,0,-.01+KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge-hubRel*hubMax])
+        valve(discDiameter=enlarge*Bohrung/2.2, shaftDiameter=Bohrung/2/4, length=15, discThickness=.8, channelCut=cut);
 }
 
 // kurbel
