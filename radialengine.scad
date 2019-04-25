@@ -54,9 +54,14 @@ pleuelSpitzeDurchmesser=PleuelAuge+2;
 kurbelDicke=5;
 kurbelRadius=Hub/2;
 
-VentilHuebe = [ for (i = [0 : 1 : Zylinder-1])
+ArbeitsWinkel = [ for (i = [0 : 1 : Zylinder-1])
     let(even=i%2==0)
-    let(w=(360 + KurbelWinkel - i*360/Zylinder + (even ? 360 : 0))%(2*360))
+    let(w=(360 + KurbelWinkel - i*360/Zylinder + (even ? 360 : 0)))
+    w%(2*360)
+];
+
+VentilHuebe = [ for (i = [0 : 1 : Zylinder-1])
+    let(w=ArbeitsWinkel[i])
     let(intake=(w<180))
     let(exhaust=(w>((360+180))))
     [intake?sin(w):0,exhaust?-sin(w):0]];
@@ -72,9 +77,11 @@ for (i = [0 : 1 : Zylinder-1])
 
 for (i = [0 : 1 : Zylinder-1])
     translate(PleuelEnden[i])
-        rotate([-90,0,BahnWinkel[i]])
-            color(.75*[1,1,1])
+        rotate([-90,0,BahnWinkel[i]]) {
+            arbeitsTakt = (ArbeitsWinkel[i]>360) && (ArbeitsWinkel[i]<360+180);
+            color(arbeitsTakt ? [.5,1,.5] : [.75,.75,.75])
                 Kolben();
+        }
 
 // zylinder
 for (i = [0 : 1 : Zylinder-1]) {
