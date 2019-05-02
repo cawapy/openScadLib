@@ -2,10 +2,15 @@ use <engine.piston.scad>
 use <engine.rod.scad>
 use <engine.valve.scad>
 use <radialengine.geometry.scad>
+use <cambarrel.scad>
 
 $fn=32;
 
+ventilRollenRadius=2;
+ventilRollenLaenge=3;
 Zylinder = 7;
+NockenZahl = floor(Zylinder/2);
+ventilHub=4;
 Hub=15;
 Bohrung=15;
 PleuelLaenge0=31;
@@ -25,6 +30,7 @@ ZylinderWand=2;
 KurbelLaenge = Hub/2;
 KurbelZentrum = [0,0];
 KurbelWinkel = $t * 360 * 2;
+nockenWinkel = -KurbelWinkel/2/NockenZahl;
 HauptPleuelScheibenRadius=PleuelVerkuerzung+2;
 PleuelLaenge=PleuelLaenge0-PleuelVerkuerzung;
 
@@ -54,6 +60,27 @@ pleuelSpitzeDurchmesser=PleuelAuge+2;
 kurbelDicke=5;
 kurbelRadius=Hub/2;
 
+color(.8*[1,1,1]) rotate([0,0,nockenWinkel+90]) {
+    translate([0,0,-Bohrung/4]) camBarrel(camCount=NockenZahl,
+        innerRadius = 64.5,
+        outerRadius = 66,
+        camHeight = ventilHub,
+        thickness = 3.11,
+        div = 2,
+        camsInside=true,
+        ahead=true
+    );
+    translate([0,0,Bohrung/4]) camBarrel(camCount=NockenZahl,
+        innerRadius = 64.5,
+        outerRadius = 66,
+        camHeight = ventilHub,
+        thickness = 3.11,
+        div = 2,
+        camsInside=true,
+        ahead=false
+    );
+}
+
 ArbeitsWinkel = [ for (i = [0 : 1 : Zylinder-1])
     let(even=i%2==0)
     let(w=(360 + KurbelWinkel - i*360/Zylinder + (even ? 360 : 0)))
@@ -64,7 +91,7 @@ VentilHuebe = [ for (i = [0 : 1 : Zylinder-1])
     let(w=ArbeitsWinkel[i])
     let(intake=(w<180))
     let(exhaust=(w>((360+180))))
-    [intake?sin(w):0,exhaust?-sin(w):0]];
+    [intake?(.5-.5*cos(2*w)):0,exhaust?(.5-.5*cos(2*w)):0]];
 
 for (i = [0 : 1 : Zylinder-1])
     translate(PleuelStarts[i])
@@ -98,9 +125,10 @@ for (i = [0 : 1 : Zylinder-1]) {
     }
 }
 module Ventil(sign, cut, enlarge=1, hubRel=0) {
-    hubMax=2;
-    translate([sign*Bohrung/4,0,-.01+KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge-hubRel*hubMax])
+    translate([0,-sign*Bohrung/4,-.01+KolbenUnterLaenge+KolbenLaenge+Hub+RestRaumLaenge-hubRel*ventilHub]) {
         valve(discDiameter=enlarge*Bohrung/2.2, shaftDiameter=Bohrung/2/4, length=15, discThickness=.8, channelCut=cut);
+        translate([0,0,15]) rotate([90,0,0]) cylinder(r=ventilRollenRadius, h=ventilRollenLaenge, center=true);
+    }
 }
 
 // kurbel

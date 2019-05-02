@@ -9,14 +9,14 @@ camBarrel(
     camsInside=true
 );
 
-module camBarrel(camCount, innerRadius, outerRadius, camHeight, div = 2, camsInside=false) {
+module camBarrel(camCount, innerRadius, outerRadius, camHeight, div = 2, camsInside=false, ahead) {
 
     angles=[0 : 1 : 360];
     camBaseRadius = camsInside ? innerRadius : outerRadius;
     camHeight = camsInside ? -camHeight : camHeight;
 
     function camRadius(angle) =
-        let (virtualAngle = ((angle * camCount)%360)*camCount/(camCount+1))
+        let (virtualAngle = (((angle * camCount)+(ahead?90:0))%360))
         let (halfHeight = camHeight/2)
         let (centerRadius = camBaseRadius + halfHeight)
         let (topRadius = camBaseRadius + camHeight)
