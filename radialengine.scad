@@ -6,11 +6,12 @@ use <cambarrel.scad>
 
 $fn=32;
 
+nockenSteilheit = 3;
 ventilRollenRadius=2;
 ventilRollenLaenge=3;
 Zylinder = 7;
 NockenZahl = floor(Zylinder/2);
-ventilHub=4;
+ventilHub=3;
 Hub=15;
 Bohrung=15;
 PleuelLaenge0=31;
@@ -66,7 +67,7 @@ color(.8*[1,1,1]) rotate([0,0,nockenWinkel+90]) {
         outerRadius = 66,
         camHeight = ventilHub,
         thickness = 3.11,
-        div = 2,
+        div = nockenSteilheit,
         camsInside=true,
         ahead=true
     );
@@ -75,7 +76,7 @@ color(.8*[1,1,1]) rotate([0,0,nockenWinkel+90]) {
         outerRadius = 66,
         camHeight = ventilHub,
         thickness = 3.11,
-        div = 2,
+        div = nockenSteilheit,
         camsInside=true,
         ahead=false
     );
@@ -88,10 +89,11 @@ ArbeitsWinkel = [ for (i = [0 : 1 : Zylinder-1])
 ];
 
 VentilHuebe = [ for (i = [0 : 1 : Zylinder-1])
-    let(w=ArbeitsWinkel[i])
-    let(intake=(w<180))
-    let(exhaust=(w>((360+180))))
-    [intake?(.5-.5*cos(2*w)):0,exhaust?(.5-.5*cos(2*w)):0]];
+    let (w =(360-nockenWinkel+BahnWinkel[i])%360)
+    [
+        camBarrel_relativeCamStroke(w, NockenZahl, nockenSteilheit, false),
+        camBarrel_relativeCamStroke(w, NockenZahl, nockenSteilheit, true)
+    ]];
 
 for (i = [0 : 1 : Zylinder-1])
     translate(PleuelStarts[i])
